@@ -9,7 +9,6 @@
 #include "config.h"
 #include "lib/log.h"
 
-int process_num;
 struct license_mem* shared_mem = NULL;
 
 // Private helper function to get shared memory id
@@ -124,7 +123,8 @@ void lock(int process) {
 
 	for (int i = 0; i < MAX_PROCESSES; i++) {
 		while (shared_mem->choosing[i]);
-		while ((shared_mem->number[i] != 0) && (shared_mem->number[i] < shared_mem->number[process] && i < process));
+		while ((shared_mem->number[i] != 0) && 
+			(shared_mem->number[i] < shared_mem->number[process] && i < process));
 	}
 }
 
@@ -135,12 +135,12 @@ void unlock(int process) {
 
 // Public function to log a message (critical resource)
 void logmsg(const char* msg) {
-	lock(getpid());
+	lock(getpid() % MAX_PROCESSES);
 
 	addmsg(non_type, msg);
 	savelog(LOG_FILE);
-	clearlog(getpid());
+	clearlog();
 
-	unlock(process_num);
+	unlock(getpid() % MAX_PROCESSES);
 }
 
